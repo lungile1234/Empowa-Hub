@@ -1,0 +1,12 @@
+{
+  "name": "empowa-app",
+  "version": "1.0.0",
+  "description": "EMPOWA HUB — MoMo integrated web app on Vercel",
+  "scripts": {
+    "start": "vercel dev"
+  },
+  "dependencies": {
+    "node-fetch": "^3.3.2",
+    "uuid": "^9.0.0"
+  }
+}
