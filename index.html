@@ -5,35 +5,133 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>EMPOWA HUB — Unified Platform</title>
   <style>
-    :root{
-      /* Brand palette (from image brief) */
-      --primary: rgb(235,184,183);   /* soft rose */
-      --secondary: rgb(42,67,108);   /* deep navy */
-      --accent: rgb(42,68,110);      /* slightly lighter navy */
-      --ink: #1b2330;                /* text */
-      --muted: #8793a2;              /* secondary text */
-      --bg: #fffefe;                 /* near-white background */
-      --card: #ffffff;               /* card surface */
-      --ring: rgba(42,67,108,.25);
-      --success: #1aa37a;
-      --warning: #e07b00;
-      --danger: #d33f49;
-      --health: #e67e22;
-      --agri: #27ae60;
-      --transport: #3498db;
-      --finance: #9b59b6;
-      --community: #f1c40f;
-    }
-    *{ box-sizing:border-box; }
-    html,body{ height:100%; }
-    body{
-      margin:0;
-      font: 15px/1.55 system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
-      color:var(--ink);
-      background:linear-gradient(180deg, rgba(235,184,183,.15), transparent 220px), var(--bg);
+    /* (your styles unchanged)… */
+  </style>
+</head>
+<body>
+  <!-- (your existing header, sections, etc.) -->
+
+  <!-- MoMo Payment Modal -->
+  <div id="momoModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 id="momoModalTitle">MoMo Payment</h2>
+        <button class="modal-close" onclick="closeModal('momoModal')">&times;</button>
+      </div>
+      <div id="momoModalContent">
+        <p>Processing your MoMo payment...</p>
+      </div>
+    </div>
+  </div>
+
+  <footer class="wrap">
+    <p>EMPOWA HUB — All-in-one platform for township entrepreneurs</p>
+    <p>© 2025 Al-azmeh. All rights reserved.</p>
+  </footer>
+
+  <script>
+    // ===== Modal Functions =====
+    function showModal(modalId, title, content) {
+      document.getElementById('momoModalTitle').textContent = title;
+      document.getElementById('momoModalContent').innerHTML = content;
+      document.getElementById(modalId).classList.add('active');
     }
 
-    /* ====== Topbar / Nav ====== */
+    function closeModal(modalId) {
+      document.getElementById(modalId).classList.remove('active');
+    }
+
+    // ===== MoMo Payment Flow =====
+    function momoPayment() {
+      showModal('momoModal', 'MoMo Payment', `
+        <div class="muted">Send money securely with MoMo</div>
+        <div class="space"></div>
+        <label>Recipient Number</label>
+        <input id="momoRecipient" placeholder="e.g. 0721234567" />
+        <label>Amount (R)</label>
+        <input id="momoAmount" type="number" placeholder="0.00" />
+        <label>Reference</label>
+        <input id="momoRef" placeholder="e.g. Payment for goods" />
+        <div class="space"></div>
+        <button class="btn" onclick="processMomoPayment()">Send Payment</button>
+      `);
+    }
+
+    async function processMomoPayment() {
+      const recipient = document.getElementById('momoRecipient').value;
+      const amount = document.getElementById('momoAmount').value;
+      const reference = document.getElementById('momoRef').value;
+
+      if (!recipient || !amount) {
+        alert('Please enter recipient and amount');
+        return;
+      }
+
+      // 🔗 Change this to your backend URL after deployment
+      const BACKEND_URL = "https://your-backend-host.com/api/momo/pay";
+
+      document.getElementById('momoModalContent').innerHTML = `
+        <div style="text-align:center">
+          <div style="font-size:48px">⏳</div>
+          <p>Sending payment request of R${amount} to ${recipient}...</p>
+        </div>
+      `;
+
+      try {
+        const res = await fetch(BACKEND_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ phone: recipient, amount, reference })
+        });
+
+        if (!res.ok) {
+          const err = await res.text();
+          throw new Error(err);
+        }
+
+        const data = await res.json();
+        document.getElementById('momoModalContent').innerHTML = `
+          <div style="text-align:center">
+            <div style="font-size:48px; color:var(--success)">✅</div>
+            <p>Payment request sent successfully!</p>
+            <p><strong>Transaction ID:</strong> ${data.txnId}</p>
+            <p>Status: ${data.status}</p>
+            <div class="space"></div>
+            <button class="btn" onclick="closeModal('momoModal')">Done</button>
+          </div>
+        `;
+
+        // Optionally add to transaction history table
+        addTransaction(new Date().toLocaleDateString(), 'MoMo Payment', `To: ${recipient}`, `-R ${amount}`, data.status);
+
+      } catch (err) {
+        document.getElementById('momoModalContent').innerHTML = `
+          <div style="text-align:center; color:var(--danger)">
+            <p>❌ Payment failed</p>
+            <p>${err.message}</p>
+            <div class="space"></div>
+            <button class="btn" onclick="closeModal('momoModal')">Close</button>
+          </div>
+        `;
+      }
+    }
+
+    // ===== Transaction History =====
+    function addTransaction(date, type, details, amount, status) {
+      const table = document.querySelector('#txTable tbody');
+      const row = document.createElement('tr');
+      row.innerHTML = `
+        <td>${date}</td>
+        <td>${type}</td>
+        <td>${details}</td>
+        <td>${amount}</td>
+        <td>${status}</td>
+      `;
+      table.appendChild(row);
+    }
+  </script>
+</body>
+</html>
     header{
       position:sticky; top:0; z-index:50;
       background: linear-gradient(180deg, var(--secondary), var(--accent));
